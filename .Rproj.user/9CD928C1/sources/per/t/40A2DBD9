@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1562951363207.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "40A2DBD9",
+    "lastKnownWriteTime" : 13229835013128297,
+    "last_content_update" : 1562951363207,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "45D2D02",
+        "caption" : "DFclean",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=DFclean&cache_key=45D2D02",
+        "displayedObservations" : 239,
+        "environment" : "",
+        "expression" : "DFclean",
+        "object" : "DFclean",
+        "preview" : 0,
+        "totalObservations" : 239,
+        "variables" : 25
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
