@@ -24,21 +24,22 @@ ipak(packages)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Topic Modelling based on tutorial:
+#https://eight2late.wordpress.com/2015/09/29/a-gentle-introduction-to-topic-modeling-using-r/
 
 ```{r}
-test<-read_xlsx(path = "C:/Users/jj.egb/Dropbox (CBS CIU)/Collective Intelligence Unit/7. project 2019 - 2022 (PU)/B_Research/Literature review/Research Areas+concepts/Data scraping/ScopusScrape - Abstract/Data and grpahs.xlsx",sheet = "Data")
 
+test<-read_xlsx(path = "C:/Users/jj.egb/Dropbox (CBS CIU)/Collective Intelligence Unit/7. project 2019 - 2022 (PU)/B_Research/Literature review/Research Areas+concepts/Data scraping/ScopusScrape - Abstract/Data and grpahs.xlsx",sheet = "Data")#PU Abstracts excel file
+
+
+test<-read_xlsx(path = "C:/Users/jj.egb/Dropbox (CBS CIU)/Collective Intelligence Unit/7. project 2019 - 2022 (PU)/B_Research/Literature review/Research Areas+concepts/Data scraping/ScopusScrape - Abstract/Data2 - CI Scopus search.xlsx",sheet = "Data")#CI scopus search
+
+
+#Separate Abstract import 
 ##Read files named xyz1111.csv, xyz2222.csv, etc.
 filenames <- list.files(path="C:/Users/jj.egb/Dropbox (CBS CIU)/Collective Intelligence Unit/7. project 2019 - 2022 (PU)/B_Research/Literature review/Research Areas+concepts/Data scraping/ScopusScrape - Abstract/Abstract scrapes",pattern="scopus+.*csv")
-
 ##Create list of data frame names without the ".csv" part 
 names <-substr(filenames,1,10)
-
 ###Load all files
 for(i in names){
     filepath <- file.path("C:/Users/jj.egb/Dropbox (CBS CIU)/Collective Intelligence Unit/7. project 2019 - 2022 (PU)/B_Research/Literature review/Research Areas+concepts/Data scraping/ScopusScrape - Abstract/Abstract scrapes",paste(i,".csv",sep=""))
@@ -47,27 +48,26 @@ for(i in names){
 
 #Merge with data
 test<-transform(test, Hits = as.numeric(Hits))
-test.clean<-test[which(test$Hits>0),]
-
-`scopus(14)`$Keyword<-test$Keyword[which(test$Hits>0)]
-
-
-
-
-
 
 ```
 
 
 Clean data
 ```{r}
+#Subset DF with only hits
 DFclean<-test[which(test$Hits>0),]
 
+#Subset DF with CI abstracts
+DFclean<-test[!grepl("No abstract available", test$Abstract),]
+
+#Insight into data
 DFclean[1,"Abstract"]
 nchar(DFclean[1,"Abstract"])
 
 
-
+#
+anyDuplicated(DFclean$Abstract)
+anyNA(test$Title)
 ```
 
 Topic Modelling - Abstracts
@@ -79,9 +79,9 @@ library(tm)
 
 #load files into corpus
 #get listing of .txt files in directory
-filenames <- paste("C:/Users/jj.egb/Downloads/Textmining/",list.files("C:/Users/jj.egb/Downloads/Textmining",pattern= "*.txt"),sep = "")#tutorial texts
+#filenames <- paste("C:/Users/jj.egb/Downloads/Textmining/",list.files("C:/Users/jj.egb/Downloads/Textmining",pattern= "*.txt"),sep = "")#tutorial texts
 #read files into a character vector 
-files <- lapply(filenames,readLines) #NB TUTORIAL LOAD
+#files <- lapply(filenames,readLines) #NB TUTORIAL LOAD
 
 filenames<-as.list(DFclean[,"Title"])
 #Create list of abstracts from dataframe
@@ -92,7 +92,7 @@ files<-as.list(DFclean[,"Abstract"]) #NB abstract load
 docs <- Corpus(VectorSource(files))
 #inspect a particular document in corpus
 writeLines(as.character(docs[[2]]))
- 
+
 
 #start preprocessing
 #Transform to lower case
@@ -160,7 +160,7 @@ myStopwords <- c("can", "say","one","way","use",
 "littl","ever","moreov","though","found","abl",
 "enough","far","earli","away","achiev","draw",
 "last","never","brief","bit","entir","brief",
-"great","lot")
+"great","lot","collect","intellig")
 docs <- tm_map(docs, removeWords, myStopwords)
 #inspect a document as a check
 writeLines(as.character(docs[[2]]))
@@ -182,7 +182,7 @@ length(freq)
 #create sort order (descending)
 ord <- order(freq,decreasing=TRUE)
 #List all terms in decreasing order of freq and write to disk
-freq[ord]
+head(freq[ord])
 write.csv(freq[ord],"word_freq.csv")
 
 
@@ -200,10 +200,9 @@ thin <- 500
 seed <-list(2003,5,63,100001,765)
 nstart <- 5
 best <- TRUE
- 
 
 #Number of topics
-k <- 5
+k <- 10
 #That done, we can now do the actual work – run the topic modelling algorithm on our corpus. Here is the code:
 
 #Run LDA using Gibbs sampling
@@ -219,7 +218,7 @@ write.csv(ldaOut.topics,file=paste("LDAGibbs",k,"DocsToTopics.csv"))
 #top 6 terms in each topic
 ldaOut.terms <- as.matrix(terms(ldaOut,6))
 write.csv(ldaOut.terms,file=paste("LDAGibbs",k,"TopicsToTerms.csv"))
- 
+ldaOut.terms 
 
 #probabilities associated with each topic assignment
 topicProbabilities <- as.data.frame(ldaOut@gamma)
