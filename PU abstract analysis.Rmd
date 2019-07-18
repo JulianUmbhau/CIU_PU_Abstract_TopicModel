@@ -59,10 +59,12 @@ DFclean<-test[which(test$Hits>0),]
 
 #Subset DF with CI abstracts
 DFclean<-test[!grepl("No abstract available", test$Abstract),]
+#Remove duplicates
+DFclean<-DFclean[!duplicated(DFclean$Title),]
 
 #Insight into data
-DFclean[1,"Abstract"]
-nchar(DFclean[1,"Abstract"])
+DFclean[2610,"Abstract"]
+nchar(DFclean[2610,"Abstract"])
 
 
 #
@@ -83,13 +85,18 @@ library(tm)
 #read files into a character vector 
 #files <- lapply(filenames,readLines) #NB TUTORIAL LOAD
 
-filenames<-as.list(DFclean[,"Title"])
-#Create list of abstracts from dataframe
-files<-as.list(DFclean[,"Abstract"]) #NB abstract load
-
+#Custom function
+rows.to.list <- function(df ) {
+	ll<-apply(df,1,list)
+	ll<-lapply(ll,unlist)
+}
+#Create list of abstract titles from dataframe with custom function
+filenames<-rows.to.list(DFclean[,"Title"])
+#Create list of abstracts from dataframe with custom function
+files<-rows.to.list(DFclean[,"Abstract"])#Abstract Load
 
 #create corpus from vector
-docs <- Corpus(VectorSource(files))
+docs <- VCorpus(VectorSource(files))
 #inspect a particular document in corpus
 writeLines(as.character(docs[[2]]))
 
@@ -160,7 +167,7 @@ myStopwords <- c("can", "say","one","way","use",
 "littl","ever","moreov","though","found","abl",
 "enough","far","earli","away","achiev","draw",
 "last","never","brief","bit","entir","brief",
-"great","lot","collect","intellig")
+"great","lot","collect","intellig","contrib","paper")
 docs <- tm_map(docs, removeWords, myStopwords)
 #inspect a document as a check
 writeLines(as.character(docs[[2]]))
@@ -185,7 +192,6 @@ ord <- order(freq,decreasing=TRUE)
 head(freq[ord])
 write.csv(freq[ord],"word_freq.csv")
 
-
 ```
 
 LDA Topic Modelling
@@ -202,12 +208,14 @@ nstart <- 5
 best <- TRUE
 
 #Number of topics
-k <- 10
+k <- 2
 #That done, we can now do the actual work – run the topic modelling algorithm on our corpus. Here is the code:
 
-#Run LDA using Gibbs sampling
+#Run LDA using Gibbs sampling - with timers
+start_time <- Sys.time()
 ldaOut <-LDA(dtm,k, method="Gibbs", control=list(nstart=nstart, seed = seed, best=best, burnin = burnin, iter = iter, thin=thin))
- 
+end_time <- Sys.time()
+end_time - start_time
 
 #write out results
 #docs to topics
